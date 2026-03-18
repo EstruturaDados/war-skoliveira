@@ -54,15 +54,6 @@ int main() {
     struct Territorio tabuleiro[NUM_TERRITORIOS];
     int totalTerritorios = 0;
 
-    // 2. Laço Principal do Jogo (Game Loop):
-    // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
-    // - A cada iteração, exibe o mapa, a missão e o menu de ações.
-    // - Lê a escolha do jogador e usa um 'switch' para chamar a função apropriada:
-    //   - Opção 1: Inicia a fase de ataque.
-    //   - Opção 2: Verifica se a condição de vitória foi alcançada e informa o jogador.
-    //   - Opção 0: Encerra o jogo.
-    // - Pausa a execução para que o jogador possa ler os resultados antes da próxima rodada.
-
     // Cadastro inicial dos territórios
     printf("======================================\n\n");
     printf("Vamos cadastrar os %d territórios iniciais do nosso mundo.\n", NUM_TERRITORIOS);
@@ -91,6 +82,15 @@ int main() {
         printf("   - Dominado por: Exército %s", tabuleiro[t].cor);
         printf("   - Tropas: %d\n", tabuleiro[t].num_tropas);
     }
+
+    // 2. Laço Principal do Jogo (Game Loop):
+    // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
+    // - A cada iteração, exibe o mapa, a missão e o menu de ações.
+    // - Lê a escolha do jogador e usa um 'switch' para chamar a função apropriada:
+    //   - Opção 1: Inicia a fase de ataque.
+    //   - Opção 2: Verifica se a condição de vitória foi alcançada e informa o jogador.
+    //   - Opção 0: Encerra o jogo.
+    // - Pausa a execução para que o jogador possa ler os resultados antes da próxima rodada.
 
     // 3. Limpeza:
     // - Ao final do jogo, libera a memória alocada para o mapa para evitar vazamentos de memória.
