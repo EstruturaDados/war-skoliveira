@@ -15,12 +15,22 @@
 // ============================================================================
 
 // Inclusão das bibliotecas padrão necessárias para entrada/saída, alocação de memória, manipulação de strings e tempo.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // --- Constantes Globais ---
 // Definem valores fixos para o número de territórios, missões e tamanho máximo de strings, facilitando a manutenção.
+#define NUM_TERRITORIOS 5
+#define TAM_STRING 100
 
 // --- Estrutura de Dados ---
 // Define a estrutura para um território, contendo seu nome, a cor do exército que o domina e o número de tropas.
+struct Territorio {
+    char nome[TAM_STRING];
+    char cor[TAM_STRING];
+    int num_tropas;
+};
 
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
@@ -28,16 +38,21 @@
 // Funções de interface com o usuário:
 // Funções de lógica principal do jogo:
 // Função utilitária:
+void limparBufferEntrada();
 
 // --- Função Principal (main) ---
 // Função principal que orquestra o fluxo do jogo, chamando as outras funções em ordem.
 int main() {
+
     // 1. Configuração Inicial (Setup):
     // - Define o locale para português.
     // - Inicializa a semente para geração de números aleatórios com base no tempo atual.
     // - Aloca a memória para o mapa do mundo e verifica se a alocação foi bem-sucedida.
     // - Preenche os territórios com seus dados iniciais (tropas, donos, etc.).
     // - Define a cor do jogador e sorteia sua missão secreta.
+
+    struct Territorio tabuleiro[NUM_TERRITORIOS];
+    int totalTerritorios = 0;
 
     // 2. Laço Principal do Jogo (Game Loop):
     // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
@@ -47,6 +62,35 @@ int main() {
     //   - Opção 2: Verifica se a condição de vitória foi alcançada e informa o jogador.
     //   - Opção 0: Encerra o jogo.
     // - Pausa a execução para que o jogador possa ler os resultados antes da próxima rodada.
+
+    // Cadastro inicial dos territórios
+    printf("======================================\n\n");
+    printf("Vamos cadastrar os %d territórios iniciais do nosso mundo.\n", NUM_TERRITORIOS);
+
+    for(totalTerritorios; totalTerritorios<NUM_TERRITORIOS; totalTerritorios++) {
+        printf("\n--- Cadastrando Território %d ---\n", totalTerritorios+1);
+        printf("Nome do território: ");
+        fgets(tabuleiro[totalTerritorios].nome, TAM_STRING, stdin);
+        printf("Cor do Exercito (ex: Azul, Verde): ");
+        fgets(tabuleiro[totalTerritorios].cor, TAM_STRING, stdin);
+        printf("Número de Tropas: ");
+        scanf("%d", &tabuleiro[totalTerritorios].num_tropas);
+        limparBufferEntrada();
+    }
+    
+    printf("\nCadastro inicial concluido com sucesso!\n\n");
+
+    // Listagem dos territórios
+    printf("=====================================\n");
+    printf("    MAPA DO MUNDO - ESTADO ATUAL\n");
+    printf("=====================================\n");
+
+    for(int t=0; t<NUM_TERRITORIOS; t++) {
+        printf("\nTERRITÓRIO %d:\n", t+1);
+        printf("   - Nome: %s", tabuleiro[t].nome);
+        printf("   - Dominado por: Exército %s", tabuleiro[t].cor);
+        printf("   - Tropas: %d\n", tabuleiro[t].num_tropas);
+    }
 
     // 3. Limpeza:
     // - Ao final do jogo, libera a memória alocada para o mapa para evitar vazamentos de memória.
@@ -96,3 +140,7 @@ int main() {
 
 // limparBufferEntrada():
 // Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
+void limparBufferEntrada() {
+    int c;
+    while((c = getchar()) != '\n' && c != EOF);
+}
