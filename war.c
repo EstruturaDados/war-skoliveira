@@ -33,23 +33,28 @@ struct Territorio {
     int num_tropas;
 };
 
+struct Jogador {
+    char cor[TAM_STRING];
+    int missaoID;
+};
+
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
 // Funções de setup e gerenciamento de memória:
 struct Territorio *alocarMapa();
-void liberarMemoria(struct Territorio *tabuleiro);
+void liberarMemoria(struct Territorio *tabuleiro, struct Jogador *jogador);
 
 // Funções de interface com o usuário:
 void inicializarTerritorios(struct Territorio *tabuleiro);
 void exibirMapa(const struct Territorio *tabuleiro);
 int sortearMissao(struct Territorio *tabuleiro);
-void exibirMissao(struct Territorio *tabuleiro, int missaoID);
+void exibirMissao(struct Territorio *tabuleiro, struct Jogador *jogador);
 void exibirMenuPrincipal();
 int faseDeAtaque(struct Territorio *tabuleiro);
 
 // Funções de lógica principal do jogo:
 void simularAtaque(struct Territorio *atacante, struct Territorio *defensor);
-int verificarVitoria(struct Territorio *tabuleiro);
+int verificarVitoria(struct Territorio *tabuleiro, struct Jogador *jogador);
 
 // Função utilitária:
 void limparBufferEntrada();
@@ -72,11 +77,16 @@ int main() {
 
     // - Preenche os territórios com seus dados iniciais (tropas, donos, etc.).
     inicializarTerritorios(tabuleiro);
-    exibirMapa(tabuleiro);
 
     // - Define a cor do jogador e sorteia sua missão secreta.
-    int missaoID = sortearMissao(tabuleiro);
-    exibirMissao(tabuleiro, missaoID);
+    struct Jogador *jogador = malloc(sizeof(struct Jogador));
+    if(jogador == NULL) {
+        printf("Erro ao alocar memória para o jogador. Encerrando o jogo.\n");
+        return 1;
+    }
+    strcpy(jogador->cor, tabuleiro[rand()%NUM_TERRITORIOS].cor); // Sorteia a cor do exército do jogador
+    jogador->missaoID = sortearMissao(tabuleiro); // Sorteia a missão
+
 
     // 2. Laço Principal do Jogo (Game Loop):
     // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
@@ -89,7 +99,7 @@ int main() {
     int opcao;
     do {
         exibirMapa(tabuleiro);
-        exibirMissao(tabuleiro, missaoID);
+        exibirMissao(tabuleiro, jogador);
         exibirMenuPrincipal();
         printf("Escolha uma opção: ");
         scanf("%d", &opcao);
@@ -101,7 +111,7 @@ int main() {
                 }
                 break;
             case 2:
-                if(verificarVitoria(tabuleiro)) {
+                if(verificarVitoria(tabuleiro, jogador)) {
                     printf("Parabéns! Você cumpriu sua missão e venceu o jogo!\n");
                     opcao = 0; // Sinaliza para sair após vitória
                 } else {
@@ -164,17 +174,18 @@ void inicializarTerritorios(struct Territorio *tabuleiro) {
 
 // liberarMemoria():
 // Libera a memória previamente alocada para o mapa usando free.
-void liberarMemoria(struct Territorio *tabuleiro) {
+void liberarMemoria(struct Territorio *tabuleiro, struct Jogador *jogador) {
     free(tabuleiro);
+    free(jogador);
 }
 
 // exibirMenuPrincipal():
 // Imprime na tela o menu de ações disponíveis para o jogador.
 void exibirMenuPrincipal() {
-    printf("--- MENU DE ACOES ---\n");
-    printf("1 - Atacar\n");
-    printf("2 - Verificar Missao\n");
-    printf("0 - Sair\n");
+    printf("\n--- MENU DE ACOES ---");
+    printf("\n1 - Atacar");
+    printf("\n2 - Verificar Missao");
+    printf("\n0 - Sair\n");
 }
 
 // exibirMapa():
@@ -194,11 +205,10 @@ void exibirMapa(const struct Territorio *tabuleiro) {
 
 // exibirMissao():
 // Exibe a descrição da missão atual do jogador com base no ID da missão sorteada.
-void exibirMissao(struct Territorio *tabuleiro, int missaoID) {
-    int seuID = rand() % NUM_TERRITORIOS; // ID do jogador (exército) para personalizar a missão
-
-    printf("\n--- SUA MISSAO (Exercito %s) ---\n", tabuleiro[seuID].cor); // Exibe a cor do exército do jogador
-    switch(missaoID) {
+void exibirMissao(struct Territorio *tabuleiro, struct Jogador *jogador) {
+    
+    printf("\n--- SUA MISSAO (Exercito %s) ---\n", jogador->cor); // Exibe a cor do exército do jogador
+    switch(jogador->missaoID) {
         case 0:
             printf("Conquistar a %s.\n", tabuleiro[0].nome);
             break;
@@ -291,9 +301,6 @@ void simularAtaque(struct Territorio *atacante, struct Territorio *defensor) {
         atacante->num_tropas--;
         printf("VITÓRIA DO DEFENSOR! O atacante perdeu 1 tropa.\n");
     }
-
-    printf("\nPressione Enter para continuar para o próximo turno...\n");
-    getchar(); // Pausa para o jogador ler o resultado
 }
 
 // sortearMissao():
@@ -306,8 +313,47 @@ int sortearMissao(struct Territorio *tabuleiro) {
 // Verifica se o jogador cumpriu os requisitos de sua missão atual.
 // Implementa a lógica para cada tipo de missão (destruir um exército ou conquistar um número de territórios).
 // Retorna 1 (verdadeiro) se a missão foi cumprida, e 0 (falso) caso contrário.
-int verificarVitoria(struct Territorio *tabuleiro) {
-    return 0; // Retorna 0 por padrão, indicando que a missão ainda não foi cumprida
+int verificarVitoria(struct Territorio *tabuleiro, struct Jogador *jogador) {
+    switch(jogador->missaoID) {
+        case 0: // Conquistar a América
+            if(strcmp(tabuleiro[0].cor, jogador->cor) == 0) {
+                return 1; // Missão cumprida
+            }
+            break;
+        case 1: // Destruir o exército Azul
+            for(int i=0; i<NUM_TERRITORIOS; i++) {
+                if(strcmp(tabuleiro[i].cor, "Azul") == 0) {
+                    return 0; // Missão não cumprida
+                }
+            }
+            return 1; // Missão cumprida
+        case 2: // Conquistar 3 territórios
+            int count = 0;
+            for(int i=0; i<NUM_TERRITORIOS; i++) {
+                if(strcmp(tabuleiro[i].cor, jogador->cor) == 0) {
+                    count++;
+                }
+            }
+            if(count >= 3) {
+                return 1; // Missão cumprida
+            }
+            break;
+        case 3: // Destruir o exército Vermelho
+            for(int i=0; i<NUM_TERRITORIOS; i++) {
+                if(strcmp(tabuleiro[i].cor, "Vermelho") == 0) {
+                    return 0; // Missão não cumprida
+                }
+            }
+            return 1; // Missão cumprida
+        case 4: // Conquistar a África e a Oceania
+            if(strcmp(tabuleiro[3].cor, jogador->cor) == 0 && strcmp(tabuleiro[4].cor, jogador->cor) == 0) {
+                return 1; // Missão cumprida
+            }
+            break;
+        default:
+            printf("Missão desconhecida. Verifique o código para corrigir.\n");
+    }
+    return 0; // Retorna falso por padrão (missão não cumprida)
 }
 
 // limparBufferEntrada():
